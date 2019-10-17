@@ -6,6 +6,7 @@ use App\Entity\Article;
 use App\Form\ArticleFormType;
 use App\Repository\ArticleRepository;
 use Doctrine\ORM\EntityManagerInterface;
+use Gedmo\Sluggable\Util\Urlizer;
 use Sensio\Bundle\FrameworkExtraBundle\Configuration\IsGranted;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
@@ -76,7 +77,13 @@ class ArticleAdminController extends BaseController
         $uploadedFile = $request->files->get('image');
         $destination = $this->getParameter('kernel.project_dir').'/public/uploads';
 
-        dd($uploadedFile->move($destination));
+        $originalFileName = pathinfo($uploadedFile->getClientOriginalName(), PATHINFO_FILENAME);
+        $newFileName = Urlizer::urlize($originalFileName).'-'.uniqid().'.'.$uploadedFile->guessExtension();
+
+        dd($uploadedFile->move(
+            $destination,
+            $newFileName
+        ));
     }
 
     /**
