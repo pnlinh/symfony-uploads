@@ -72,7 +72,11 @@ class ArticleAdminController extends BaseController
      */
     public function temporaryUploadAction(Request $request)
     {
-        dd($request->files->get('image'));
+        /** @var \Symfony\Component\HttpFoundation\File\UploadedFile $uploadedFile */
+        $uploadedFile = $request->files->get('image');
+        $destination = $this->getParameter('kernel.project_dir').'/public/uploads';
+
+        dd($uploadedFile->move($destination));
     }
 
     /**
