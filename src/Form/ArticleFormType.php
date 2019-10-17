@@ -16,6 +16,8 @@ use Symfony\Component\Form\FormEvent;
 use Symfony\Component\Form\FormEvents;
 use Symfony\Component\Form\FormInterface;
 use Symfony\Component\OptionsResolver\OptionsResolver;
+use Symfony\Component\Validator\Constraints\Image;
+use Symfony\Component\Validator\Constraints\NotNull;
 
 class ArticleFormType extends AbstractType
 {
@@ -47,15 +49,28 @@ class ArticleFormType extends AbstractType
                 'choices' => [
                     'The Solar System' => 'solar_system',
                     'Near a star' => 'star',
-                    'Interstellar Space' => 'interstellar_space'
+                    'Interstellar Space' => 'interstellar_space',
                 ],
                 'required' => false,
-            ])
-            ->add('imageFile', FileType::class, [
+            ]);
+
+        $imageConstraints = [
+            new Image([
+                'maxSize' => '5k',
+            ]),
+        ];
+
+        if (!$isEdit || !$article->getImageFilename()) {
+            $imageConstraints[] = new NotNull([
+                'message' => 'Please upload an image',
+            ]);
+        }
+
+        $builder->add('imageFile', FileType::class, [
                 'mapped' => false,
                 'required' => true,
-            ])
-        ;
+                'constraints' => $imageConstraints,
+            ]);;
 
         if ($options['include_published_at']) {
             $builder->add('publishedAt', null, [
@@ -63,32 +78,20 @@ class ArticleFormType extends AbstractType
             ]);
         }
 
-        $builder->addEventListener(
-            FormEvents::PRE_SET_DATA,
-            function (FormEvent $event) {
-                /** @var Article|null $data */
-                $data = $event->getData();
-                if (!$data) {
-                    return;
-                }
-
-                $this->setupSpecificLocationNameField(
-                    $event->getForm(),
-                    $data->getLocation()
-                );
+        $builder->addEventListener(FormEvents::PRE_SET_DATA, function (FormEvent $event) {
+            /** @var Article|null $data */
+            $data = $event->getData();
+            if (! $data) {
+                return;
             }
-        );
 
-        $builder->get('location')->addEventListener(
-            FormEvents::POST_SUBMIT,
-            function(FormEvent $event) {
-                $form = $event->getForm();
-                $this->setupSpecificLocationNameField(
-                    $form->getParent(),
-                    $form->getData()
-                );
-            }
-        );
+            $this->setupSpecificLocationNameField($event->getForm(), $data->getLocation());
+        });
+
+        $builder->get('location')->addEventListener(FormEvents::POST_SUBMIT, function (FormEvent $event) {
+            $form = $event->getForm();
+            $this->setupSpecificLocationNameField($form->getParent(), $form->getData());
+        });
     }
 
     private function setupSpecificLocationNameField(FormInterface $form, ?string $location)
@@ -142,7 +145,7 @@ class ArticleFormType extends AbstractType
             'Alpha Centauari B',
             'Betelgeuse',
             'Rigel',
-            'Other'
+            'Other',
         ];
 
         $locationNameChoices = [
