@@ -56,7 +56,7 @@ class ArticleFormType extends AbstractType
 
         $imageConstraints = [
             new Image([
-                'maxSize' => '5k',
+                'maxSize' => '500k',
             ]),
         ];
 
