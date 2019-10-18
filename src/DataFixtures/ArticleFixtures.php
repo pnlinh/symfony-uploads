@@ -3,8 +3,6 @@
 namespace App\DataFixtures;
 
 use App\Entity\Article;
-use App\Entity\Comment;
-use App\Entity\Tag;
 use App\Service\UploaderHelper;
 use Doctrine\Common\DataFixtures\DependentFixtureInterface;
 use Doctrine\Common\Persistence\ObjectManager;
@@ -93,6 +91,6 @@ EOF
         $targetPath = sys_get_temp_dir().'/'.$randomImage;
         $fs->copy(__DIR__.'/images/'.$randomImage, $targetPath, true);
         return $this->uploaderHelper
-            ->uploadArticleImage(new File($targetPath));
+            ->uploadArticleImage(new File($targetPath), null);
     }
 }
