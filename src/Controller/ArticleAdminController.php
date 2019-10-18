@@ -8,6 +8,7 @@ use App\Repository\ArticleRepository;
 use App\Service\UploaderHelper;
 use Doctrine\ORM\EntityManagerInterface;
 use Sensio\Bundle\FrameworkExtraBundle\Configuration\IsGranted;
+use Sensio\Bundle\FrameworkExtraBundle\Configuration\ParamConverter;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
@@ -51,6 +52,7 @@ class ArticleAdminController extends BaseController
     /**
      * @Route("/admin/article/{id}/edit", name="admin_article_edit")
      * @IsGranted("MANAGE", subject="article")
+     //* @ParamConverter("id", class="App\Entity\Article", options={"id": "id"})
      */
     public function edit(Article $article, Request $request, EntityManagerInterface $em, UploaderHelper $uploaderHelper)
     {
