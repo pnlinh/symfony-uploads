@@ -13,8 +13,11 @@ use Symfony\Component\HttpFoundation\File\UploadedFile;
 class UploaderHelper
 {
     const ARTICLE_IMAGE = 'article_image';
+    const ARTICLE_REFERENCE = 'article_reference';
 
-    private $filesystem;
+    private $fileSystem;
+
+    private $privateFileSystem;
 
     private $requestStackContext;
 
@@ -22,9 +25,10 @@ class UploaderHelper
 
     private $publicAssetBaseUrl;
 
-    public function __construct(FilesystemInterface $publicUploadsFileSystem, RequestStackContext $requestStackContext, LoggerInterface $logger, string $uploadedAssetsBaseUrl)
+    public function __construct(FilesystemInterface $publicUploadsFileSystem, FilesystemInterface $privateUploadsFileSystem, RequestStackContext $requestStackContext, LoggerInterface $logger, string $uploadedAssetsBaseUrl)
     {
-        $this->filesystem = $publicUploadsFileSystem;
+        $this->fileSystem = $publicUploadsFileSystem;
+        $this->privateFileSystem = $privateUploadsFileSystem;
         $this->requestStackContext = $requestStackContext;
         $this->logger = $logger;
         $this->publicAssetBaseUrl = $uploadedAssetsBaseUrl;
@@ -32,31 +36,11 @@ class UploaderHelper
 
     public function uploadArticleImage(File $file, ?string $existingFileName): string
     {
-        if ($file instanceof UploadedFile) {
-            $originalFileName = $file->getClientOriginalName();
-        } else {
-            $originalFileName = $file->getFilename();
-        }
-
-        $newFileName = Urlizer::urlize(pathinfo($originalFileName, PATHINFO_FILENAME)).'-'.uniqid().'.'.$file->guessExtension();
-
-        $stream = fopen($file->getPathname(), 'r');
-        $result = $this->filesystem->writeStream(
-            self::ARTICLE_IMAGE.'/'.$newFileName,
-            $stream
-        );
-
-        if ($result === false) {
-            throw new \Exception(sprintf('Could not write uploaded file "%s"', $newFileName));
-        }
-
-        if (is_resource($stream)) {
-            fclose($stream);
-        }
+        $newFileName = $this->uploadFile($file, self::ARTICLE_IMAGE, true);
 
         if ($existingFileName) {
             try {
-                $result = $this->filesystem->delete(self::ARTICLE_IMAGE.'/'.$existingFileName);
+                $result = $this->fileSystem->delete(self::ARTICLE_IMAGE.'/'.$existingFileName);
 
                 if ($result === false) {
                     throw new \Exception(sprintf('Could not delete old uploaded file "%s"', $existingFileName));
@@ -71,12 +55,41 @@ class UploaderHelper
 
     public function uploadArticleReference(File $file): string
     {
-        dd($file);
+        return $this->uploadFile($file, self::ARTICLE_REFERENCE, false);
     }
 
     public function getPublicPath(string $path): string
     {
         return $this->requestStackContext
                 ->getBasePath().$this->publicAssetBaseUrl.'/'.$path;
+    }
+
+    private function uploadFile(File $file, string $directory, bool $isPublic): string
+    {
+        if ($file instanceof UploadedFile) {
+            $originalFileName = $file->getClientOriginalName();
+        } else {
+            $originalFileName = $file->getFilename();
+        }
+
+        $newFileName = Urlizer::urlize(pathinfo($originalFileName, PATHINFO_FILENAME)).'-'.uniqid().'.'.$file->guessExtension();
+
+        $fileSystem = $isPublic ? $this->fileSystem : $this->privateFileSystem;
+
+        $stream = fopen($file->getPathname(), 'r');
+        $result = $fileSystem->writeStream(
+            $directory.'/'.$newFileName,
+            $stream
+        );
+
+        if ($result === false) {
+            throw new \Exception(sprintf('Could not write uploaded file "%s"', $newFileName));
+        }
+
+        if (is_resource($stream)) {
+            fclose($stream);
+        }
+
+        return $newFileName;
     }
 }

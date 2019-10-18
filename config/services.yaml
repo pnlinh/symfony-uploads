@@ -23,6 +23,7 @@ services:
             $markdownLogger: '@monolog.logger.markdown'
             $isDebug: '%kernel.debug%'
             $publicUploadsFileSystem: '@oneup_flysystem.public_uploads_filesystem_filesystem'
+            $privateUploadsFileSystem: '@oneup_flysystem.private_uploads_filesystem_filesystem'
             $uploadedAssetsBaseUrl: '%uploads_base_url%'
 
     # custom aliases for autowiring
