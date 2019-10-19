@@ -64,6 +64,23 @@ class UploaderHelper
                 ->getBasePath().$this->publicAssetBaseUrl.'/'.$path;
     }
 
+    /**
+     * @return resource
+     * @throws \League\Flysystem\FileNotFoundException
+     */
+    public function readStream(string $path, bool $isPublic)
+    {
+        $fileSystem = $isPublic ? $this->fileSystem : $this->privateFileSystem;
+
+        $resource = $fileSystem->readStream($path);
+
+        if ($resource === false) {
+            throw new \Exception(sprintf('Error opening stream for "%s"', $path));
+        }
+
+        return $resource;
+    }
+    
     private function uploadFile(File $file, string $directory, bool $isPublic): string
     {
         if ($file instanceof UploadedFile) {
