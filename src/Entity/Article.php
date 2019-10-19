@@ -4,9 +4,9 @@ namespace App\Entity;
 
 use App\Repository\CommentRepository;
 use App\Service\UploaderHelper;
+use DateTimeInterface;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
-use Doctrine\Common\Collections\Criteria;
 use Doctrine\ORM\Mapping as ORM;
 use Gedmo\Mapping\Annotation as Gedmo;
 use Gedmo\Timestampable\Traits\TimestampableEntity;
@@ -89,6 +89,7 @@ class Article
 
     /**
      * @ORM\OneToMany(targetEntity="App\Entity\ArticleReference", mappedBy="article")
+     * @ORM\OrderBy({"position"="ASC"})
      */
     private $articleReferences;
 
@@ -141,7 +142,7 @@ class Article
         return $this;
     }
 
-    public function getPublishedAt(): ?\DateTimeInterface
+    public function getPublishedAt(): ?DateTimeInterface
     {
         return $this->publishedAt;
     }
@@ -151,7 +152,7 @@ class Article
         return $this->publishedAt !== null;
     }
 
-    public function setPublishedAt(?\DateTimeInterface $publishedAt): self
+    public function setPublishedAt(?DateTimeInterface $publishedAt): self
     {
         $this->publishedAt = $publishedAt;
 
