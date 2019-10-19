@@ -26,6 +26,8 @@ class ArticleReferenceAdminController extends BaseController
         /** @var \Symfony\Component\HttpFoundation\File\UploadedFile $uploadedFile */
         $uploadedFile = $request->files->get('reference');
 
+        dump($uploadedFile);
+
         $violations = $validator->validate(
             $uploadedFile,
             [
