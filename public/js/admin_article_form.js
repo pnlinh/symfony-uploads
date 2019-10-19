@@ -35,12 +35,31 @@ class ReferenceList {
         this.$element = $element;
         this.references = [];
         this.render();
+
+        this.$element.on('click', '.js-reference-delete', (event) => {
+            this.handleReferenceDelete(event);
+        });
+
         $.ajax({
             url: this.$element.data('url')
         }).then(data => {
             this.references = data;
             this.render();
-        })
+        });
+    }
+
+    handleReferenceDelete(event) {
+        const $li = $(event.currentTarget).closest('.list-group-item');
+        const id = $li.data('id');
+        $li.addClass('disabled');
+
+        $.ajax({
+            url: '/admin/article/references/' + id,
+            method: 'DELETE'
+        }).then(() => {
+            this.references = this.references.filter(reference => reference.id !== id);
+            this.render();
+        });
     }
 
     addReference(reference) {
@@ -51,10 +70,11 @@ class ReferenceList {
     render() {
         const itemsHtml = this.references.map(reference => {
             return `
-                        <li class="list-group-item d-flex justify-content-between align-items-center">
+                        <li class="list-group-item d-flex justify-content-between align-items-center" data-id="${reference.id}">
                             ${reference.originalFilename}
                         <span>
-                            <a href="/admin/article/references/${reference.id}/download"><span class="fa fa-download"></span></a>
+                            <a href="/admin/article/references/${reference.id}/download"><span class="fa fa-download" style="vertical-align: middle"></span></a>
+                            <button class="js-reference-delete btn btn-link"><span class="fa fa-trash"></span></button>
                         </span>
                         </li>
                     `
