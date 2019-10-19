@@ -134,7 +134,7 @@ class ArticleReferenceAdminController extends BaseController
     /**
      * @Route("/admin/article/references/{id}", name="admin_article_update_reference", methods={"PUT"})
      */
-    public function updateArticleReference(ArticleReference $reference, UploaderHelper $uploaderHelper, EntityManagerInterface $em, SerializerInterface $serializer, Request $request)
+    public function updateArticleReference(ArticleReference $reference, UploaderHelper $uploaderHelper, EntityManagerInterface $em, SerializerInterface $serializer, Request $request, ValidatorInterface $validator)
     {
         $article = $reference->getArticle();
         $this->denyAccessUnlessGranted('MANAGE', $article);
@@ -148,6 +148,11 @@ class ArticleReferenceAdminController extends BaseController
                 'groups' => ['input']
             ]
         );
+
+        $violations = $validator->validate($reference);
+        if ($violations->count() > 0) {
+            return $this->json($violations, 400);
+        }
 
         $em->persist($reference);
         $em->flush();
